@@ -1,5 +1,5 @@
 <template>
-    <div class="shadow-md bg-white ">
+    <div class="shadow-lg bg-white " style='z-index:10000;'>
         <div class="max-w-screen-lg mx-auto flex justify-between">
             <div class=" p-4 ">
                 <router-link class="font-semibold tracking-wider	text-lg " :to="{name : 'welcome'}">

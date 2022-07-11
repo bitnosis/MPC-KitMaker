@@ -1,15 +1,21 @@
 <template>
   <div>
+
+   
         <div>
             <nav-bar v-if="this.$route.name !== 'welcome'"></nav-bar>
         </div>
         <VerifyNotice :id="id" v-if="(this.$route.name !== 'welcome') && id && !verified" />
+        <!-- PAD EDIT SECTION -->
+
+
+
         <div>
           
           <router-view class="p-6 " v-slot="{ Component }">
-            <transition name="fade" mode="out-in" >
+            
               <component :is="Component" />
-            </transition>
+         
           </router-view>
         </div>
   </div>
@@ -38,6 +44,7 @@ export default {
 
 
 <style>
+.sticky {position:fixed;}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
