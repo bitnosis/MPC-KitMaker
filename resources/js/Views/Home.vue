@@ -20,7 +20,7 @@
     <div class="flex justify-center">
         <div class="flex-1 mt-4" @click="editingPad=null">
             <div class="border w-auto">
-                <div class="border p-4 font-semibold ">MPC Kit Maker -{{dragging}} {{Kit.name}}</div>
+                <div class="border p-4 font-semibold ">MPC Kit Maker -{{draggable}} {{Kit.name}}</div>
                 <div class="container w-full mx-auto pt-20">
 
                     <button @click="exportXPM">
@@ -72,18 +72,18 @@
 
                         <div class='mb-6 mt-6 w-1/2 bank p-4' v-for="bank in Banks" :key="bank">
                             <h3 class="font-bold text-2xl uppercase  mb-1 text-gray-400">Bank {{bank}}</h3>
-                            <div class='flex flex-wrap bg-gray-200 p-6 rounded-lg w-full bank shadow-lg reverseorder'>
+                            <div class='flex flex-wrap bg-gray-200 p-3 rounded-lg w-full bank shadow-lg reverseorder'>
                                 <template v-for="file in Files.slice().reverse()" :key="file">
                                     <div v-if="bank==file.bank" @click.stop="playPad(file)" class="w-1/4">
-                                        <p class="mb-1 mt-2 text-xs font-bold text-gray-500">{{file.bank+padNumber(file.padNumber)}}</p>
+                                        <p class="mb-1 mt-2 ml-2 text-xs font-bold text-gray-500">{{file.bank+padNumber(file.padNumber)}}</p>
                                         <div class="flex flex-row ">
-                                            
+
                                             <div :class='file.color' class="flex-1 glowing-border samplePad pushable pointer md:text-center shadow-md">
-                                                <div class="flex-shrink front bg-gray-900 border-4 border-gray-400">
-                                                    <input style="cursor:pointer!important;" hidden type="file" :id="'file-'+file.padIndex" @change="uploadSingleFile">
+                                                <div :class='draggable ? "bg-gray-700 text-white" : "bg-gray-900"' class="flex-shrink front border-4 border-gray-400">
+                                                    <input v-if="file.file===null" @dragenter="clickedPad=file" @dragend="clickedPad=file" @drop="clickedPad=file" class="absolute inset-0 z-50 m-0 p-0 w-full h-full outline-none opacity-0" type="file" :id="'file-'+file.padIndex" @change="uploadSingleFile">
                                                     <button title="Click to load a file into pad" v-if="file.file===null" style='cursor:pointer!important;' class="rounded p-1 pointer bg-gray-600 ">
                                                         <label class='pointer' :for="'file-'+file.padIndex">
-                                                            <svg class="h-6 w-6 pointer " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <svg class="h-4 w-4 pointer " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                                                                 <line x1="12" y1="11" x2="12" y2="17" />
                                                                 <line x1="9" y1="14" x2="15" y2="14" /></svg>
@@ -102,7 +102,7 @@
                                                     </button>
 
                                                     <h5 class=" mt-2 font-bold text-xs">
-                                                        <span class=' text-gray-600' v-if="file.name==null">Empty </span><span class='text-gray-200' v-else>{{truncate(file.name)}}</span>
+                                                        <span :class='!draggable ? "text-gray-600" :"text-white"' v-if="file.name==null">Empty </span><span :class='!draggable ? "text-gray-300" :"text-white"' v-else>{{truncate(file.name)}}</span>
                                                     </h5>
                                                 </div>
 
@@ -127,32 +127,26 @@
 </template>
 
 <script>
+console.log('WEBMITI');
 
-
-
-            console.log('WEBMITI');
-            
 // Function triggered when WebMidi.js is ready
 function onEnabled() {
     console.log(WebMidi);
     console.log('Enabling Web MIDI')
-  // Display available MIDI input devices
-  if (WebMidi.inputs.length < 1) {
-    
-  } else {
-    console.log('Enabling Web MIDI')
-    WebMidi.inputs.forEach((d, index) => {
-      document.body.innerHTML+= `${index}: ${d.name} <br>`;
-    });
-  }
+    // Display available MIDI input devices
+    if (WebMidi.inputs.length < 1) {
+
+    } else {
+        console.log('Enabling Web MIDI')
+        WebMidi.inputs.forEach((d, index) => {
+            document.body.innerHTML += `${index}: ${d.name} <br>`;
+        });
+    }
 
 }
 
 // Enable WebMidi.js and trigger the onEnabled() function when ready
 WebMidi.enable().then(onEnabled).catch(err => alert(err));
-
-
-
 
 import {
     xmlString_1,
@@ -167,6 +161,7 @@ export default {
     },
     data() {
         return {
+            draggable: false,
             options: {
                 minValue: 0,
                 maxValue: 127,
@@ -203,6 +198,14 @@ export default {
     },
     mounted() {
         this.clearKit();
+        window.addEventListener("keyup", function (e) {
+            this.draggable = false;
+        }.bind(this));
+        window.addEventListener("keydown", function (e) {
+            if (e.shiftKey) {
+                this.draggable = true;
+            }
+        }.bind(this));
     },
     computed: {
         emptySlot: function () {
@@ -248,11 +251,12 @@ export default {
             if (file != null) {
                 var d = {
                     padIndex: this.clickedPad.padIndex,
+                    padNumber: this.clickedPad.padNumber,
                     name: file.name,
                     playing: false,
                     file,
                     bank: this.clickedPad.bank,
-                    color: null
+                    color: this.clickedPad.color
                 }
                 this.Files[this.clickedPad.padIndex - 1] = d;
             }
@@ -262,23 +266,18 @@ export default {
                 that.loadPreviews();
             }, 200)
         },
-        padNumber(num){
-            if(num<10) return "0"+num;
+        padNumber(num) {
+            if (num < 10) return "0" + num;
             return num;
         },
         uploadFile(e) {
             var that = this;
-            var currentIndex = 0;
-            var currentBank = "A";
-            
-
-
             for (var i = 0; i < e.target.files.length; i++) {
-var rand = Math.random();
-var color = 'red';
-if(rand>0.5){
-color = 'blue';
-}
+                var rand = Math.random();
+                var color = 'red';
+                if (rand > 0.5) {
+                    color = 'blue';
+                }
                 this.Files.every((value, index) => {
                     if (value.file === null) {
 
@@ -298,7 +297,6 @@ color = 'blue';
                 })
 
             }
-            console.log(this.Files)
             this.$forceUpdate();
             setTimeout(function () {
                 that.loadPreviews();
@@ -314,7 +312,7 @@ color = 'blue';
                         file: null,
                         playing: false,
                         padIndex: padIndex,
-                        padNumber: i+1,
+                        padNumber: i + 1,
                         bank: value
                     });
                     padIndex++;
@@ -495,8 +493,9 @@ color = 'blue';
 .glowing-border {
     border: 2px solid #787878;
     border-radius: 8px;
-    
+
 }
+
 .glowing-border.red {
     border-color: #ff1a1a;
     box-shadow: 0 2px 8px #ff1616;
@@ -504,7 +503,8 @@ color = 'blue';
 
 .glowing-border.blue {
     border-color: #1a98ff;
-    box-shadow: 0 0px 8px #1696ff;
+    box-shadow: 0 0px 6px #1696ff;
 }
 
+.draggable {}
 </style>
