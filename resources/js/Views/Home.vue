@@ -61,18 +61,19 @@
                             <div class="flex flex-col items-center justify-center">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-currentColor"></i>
                                 <h4 class='uppercase font-bold text-gray-500'>
-                                    Drag files here to automatically load onto kit
+                                    Drag files here to load onto kit
                                 </h4>
-                                <p class="mt-4 text-gray-400">or click a pad below to load specifically onto that pad</p>
+                                <p class="mt-4 text-gray-400">or click a pad / drag a file onto it, to load onto a pad</p>
+                                <p class="mt-4 text-gray-400">Hold Shift to re-arrange pads with drag and drop</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="w-full flex flex-wrap mb-16 text-gray-800 leading-normal">
 
-                        <div class='mb-6 mt-6 w-1/2 bank p-4' v-for="bank in Banks" :key="bank">
-                            <h3 class="font-bold text-2xl uppercase  mb-1 text-gray-400">Bank {{bank}}</h3>
-                            <div class='flex flex-wrap bg-gray-200 p-3 rounded-lg w-full bank shadow-lg reverseorder'>
+                        <div class='mb-3 w-1/2 bank p-4' v-for="bank in Banks" :key="bank">
+                            <h3 class="font-bold text-xl uppercase  mb-1 text-gray-400">Bank {{bank}}</h3>
+                            <div class='flex flex-wrap bg-gray-200 p-4 rounded-md border border-gray-300 w-full bank shadow-md reverseorder'>
                                 <template v-for="file in Files.slice().reverse()" :key="file">
                                     <div v-if="bank==file.bank" @click.stop="playPad(file)" class="w-1/4">
                                         <p class="mb-1 mt-2 ml-2 text-xs font-bold text-gray-500">{{file.bank+padNumber(file.padNumber)}}</p>
